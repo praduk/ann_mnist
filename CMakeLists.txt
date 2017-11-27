@@ -7,7 +7,10 @@ cmake_minimum_required( VERSION 3.2 )
 # Set Project Name
 set( PNAME ann_mnist )
 
-project( ${PNAME}_project CXX )
+project( ${PNAME}_project )
+
+include (TestBigEndian)
+TEST_BIG_ENDIAN(U_BIG_ENDIAN)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release"
@@ -27,7 +30,7 @@ file(GLOB_RECURSE SRCS
 
 # Add Include Directories
 include_directories("${PROJECT_SOURCE_DIR}/src")
-include_directories("${PROJECT_BINARY_DIR}/include")
+include_directories("${PROJECT_BINARY_DIR}/src")
 add_executable( ${PNAME} ${SRCS} )
 
 # Add Libraries
@@ -35,11 +38,16 @@ add_executable( ${PNAME} ${SRCS} )
 #include_directories(${qsim_INCLUDE_DIRS})
 #target_link_libraries(${PNAME} qsim)
 
+#Debugging print all CMAKE Variables
 #get_cmake_property(_variableNames VARIABLES)
 #foreach (_variableName ${_variableNames})
 #    message(STATUS "${_variableName}=${${_variableName}}")
 #endforeach()
 
+configure_file(proj-config.cmake.in "${PROJECT_BINARY_DIR}/${PNAME}-config.cmake" @ONLY)
+configure_file("${PROJECT_SOURCE_DIR}/src/config.hh.in" "${PROJECT_BINARY_DIR}/src/config.hh")
+
+install(FILES "${PROJECT_BINARY_DIR}/${PNAME}-config.cmake" DESTINATION lib/${PNAME})
 install( TARGETS ${PNAME}
     EXPORT ${PNAME} 
     DESTINATION bin )
