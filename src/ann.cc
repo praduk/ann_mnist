@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 //double uniform random number
-double drand(double fMin=0.0, double fMax=1.0)
+double drand(double fMin, double fMax)
 {
     double f = ((double)(rand()))/RAND_MAX;
     return fMin + f*(fMax-fMin);
@@ -57,14 +57,11 @@ void SoftMax::eval()
 void SoftMax::backprop()
 {
     double invsum2 = 1.0/(sum*sum);
+    double C = 0.0;
+    for( int j=0; j<I; j++ )
+        C -= in[j]*og[j]*invsum2;
     for( int i=0; i<I; i++ )
-    {
-        g[i] = og[i]*(sum-in[i])*invsum2;
-        for( int j=0; j<i-1; j++ )
-            g[i] -= in[j]*og[j]*invsum2;
-        for( int j=i+1; j<I; j++ )
-            g[i] -= in[j]*og[j]*invsum2;
-    }
+        g[i] = C + og[i]*sum*invsum2;
 }
 
 LinearLayer::LinearLayer(int nI, int nO)
@@ -143,7 +140,7 @@ void LinearLayer::backprop()
         //accumulate bias gradients
         bg[r] += K;
 
-        for(int c=0; c<O; c++)
+        for(int c=0; c<I; c++)
         {
             //accumulate weight gradients
             WG(r,c) += K*in[c];

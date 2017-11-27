@@ -12,6 +12,8 @@
 #include <cmath>
 #include <vector>
 
+double drand(double fMin=0.0, double fMax=1.0);
+
 //M inputs per node, N outputs per node
 struct Layer
 {
@@ -113,7 +115,7 @@ struct LogisticLayer : public LinearLayer
 struct SoftPlusLayer : public LinearLayer
 {
     SoftPlusLayer(int nI, int nO) : LinearLayer(nI, nO) {}
-    double fsigma(double x) { std::log(1.0+exp(x)); }
+    double fsigma(double x) { return std::log(1.0+std::exp(x)); }
     double dsigma(double x) { return 1.0/(1.0+std::exp(-x)); }
 };
 
