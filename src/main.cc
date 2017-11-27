@@ -123,6 +123,7 @@
 //    delete [] og;
 //}
 
+void test(Network& n, MNISTDB& db);
 void train(Network& n, MNISTDB& db)
 {
     const double gamma = 5E-1; //learning rate
@@ -187,7 +188,7 @@ void train(Network& n, MNISTDB& db)
             n.step(-h);
             h /= 2.0;
         }
-        else if( fabs(ratio-1.0) <= 0.05 )
+        else if( fabs(ratio-1.0) <= 0.20 )
             h *=1.1;
         else
             h /= 1.09;
@@ -195,8 +196,8 @@ void train(Network& n, MNISTDB& db)
         //    h /=1.2;
         
         //Print Statistics
-        printf("%05d J=%23.15E act/exp=%23.15E h=%23.15E\n",it,J*dsize,ratio,h);
-        if( it%(10*dsize)==0 )
+        printf("%05d J=%23.15E dJ=%23.15E act/exp=%23.15E h=%23.15E\n",it,J*dsize,actDel*dsize,ratio,h);
+        if( it%(20*dsize)==(20*dsize-1) )
         {
             printf("Saving Weights\n");
             FILE* f = fopen("weights.bin","wb");
@@ -207,6 +208,8 @@ void train(Network& n, MNISTDB& db)
                 fwrite(p->b, sizeof(double), p->O, f);
             }
             fclose(f);
+            test(n,db);
+            n.setInput(input);
         }
     }
 }
@@ -256,7 +259,8 @@ int main()
     //LinearLayer + SoftMax Network
     Network lin(MNISTimg::DATASZ,10);
     //lin.addLayer(new LinearLayer(MNISTimg::DATASZ,10));
-    lin.addLayer(new LogisticLayer(MNISTimg::DATASZ,16));
+    //lin.addLayer(new LogisticLayer(MNISTimg::DATASZ,16));
+    lin.addLayer(new SoftPlusLayer(MNISTimg::DATASZ,16));
     lin.addLayer(new LogisticLayer(16,10));
     lin.addLayer(new SoftMax(10));
 
@@ -275,6 +279,7 @@ int main()
     }
     train(lin,traindb);
     //test(lin,testdb);
+    //test(lin,traindb);
 
 
     //LinearLayer ll(1,1);
