@@ -126,7 +126,7 @@
 void test(Network& n, MNISTDB& db);
 void train(Network& n, MNISTDB& db)
 {
-    const double gamma = 5E-1; //learning rate
+    const double gamma = 1E-2; //learning rate
     const double scale = 1.0/255.0; //Scale Pixel Values from 0-255 to 0-1
     double input[MNISTimg::DATASZ]; //Input Vector
     double error[10]; //Eroror Vector, output - desired
@@ -136,7 +136,8 @@ void train(Network& n, MNISTDB& db)
     n.setGrad(error);
 
     double h = gamma;
-    for( int it=0; it<10000; it++)
+    int part = rand()%dsize;
+    for( int it=0; it<1000000000; it++)
     {
         //Train
         n.clear(); //Clear Gradients
@@ -144,7 +145,9 @@ void train(Network& n, MNISTDB& db)
         double J = 0.0; //cost function
         //for(int i=0; i<db.size(); i++)
         int osize = db.size()/dsize;
-        int part = rand()%dsize;
+
+        if( it%100==0 )
+            part = (part+1)%dsize;
         
         //for(int i=0; i<db.size(); i++)
         for(int i=osize*part; i<osize*part+osize; i++)
@@ -161,39 +164,70 @@ void train(Network& n, MNISTDB& db)
                 J += 0.5*error[j]*error[j];
             n.backprop();
         }
-        //Perform Gradient Step
-        n.step(h);
-        //Calculate New Cost
-        double Jnew = 0.0;
-        //for(int i=0; i<db.size(); i++)
-        for(int i=osize*part; i<osize*part+osize; i++)
+
+        h *= 1.2;
+
+        double Jnew;
+        while(true)
         {
-            MNISTimg& sample = db[i];
-            for(int j=0; j<MNISTimg::DATASZ; j++)
-                input[j] = scale*(*(U8*)(sample.data+j));
-            n.eval();
-            for(int j=0; j<10; j++)
-                error[j] = n.o[j];
-            error[sample.label] -= 1.0;
-            for(int j=0; j<10; j++)
-                Jnew += 0.5*error[j]*error[j];
+            n.step(h);
+            //Calculate New Cost
+            Jnew = 0.0;
+            //for(int i=0; i<db.size(); i++)
+            for(int i=osize*part; i<osize*part+osize; i++)
+            {
+                MNISTimg& sample = db[i];
+                for(int j=0; j<MNISTimg::DATASZ; j++)
+                    input[j] = scale*(*(U8*)(sample.data+j));
+                n.eval();
+                for(int j=0; j<10; j++)
+                    error[j] = n.o[j];
+                error[sample.label] -= 1.0;
+                for(int j=0; j<10; j++)
+                    Jnew += 0.5*error[j]*error[j];
+            }
+            if( Jnew > J )
+            {
+                n.step(-h);
+                h/=2.0;
+            }
+            else
+                break;
         }
+
+        ////Perform Gradient Step
+        //n.step(h);
+        ////Calculate New Cost
+        //double Jnew = 0.0;
+        ////for(int i=0; i<db.size(); i++)
+        //for(int i=osize*part; i<osize*part+osize; i++)
+        //{
+        //    MNISTimg& sample = db[i];
+        //    for(int j=0; j<MNISTimg::DATASZ; j++)
+        //        input[j] = scale*(*(U8*)(sample.data+j));
+        //    n.eval();
+        //    for(int j=0; j<10; j++)
+        //        error[j] = n.o[j];
+        //    error[sample.label] -= 1.0;
+        //    for(int j=0; j<10; j++)
+        //        Jnew += 0.5*error[j]*error[j];
+        //}
 
         double expDel = -h*n.normgrad2();
         double actDel = Jnew-J;
         double ratio = actDel/expDel;
 
-        if( ratio < 0.5 )
-        {
-            n.step(-h);
-            h /= 2.0;
-        }
-        else if( fabs(ratio-1.0) <= 0.20 )
-            h *=1.1;
-        else
-            h /= 1.09;
-        //else if ( ratio <= 0.5 )
-        //    h /=1.2;
+        //if( ratio < 0.5 )
+        //{
+        //    n.step(-h);
+        //    h /= 2.0;
+        //}
+        //else if( fabs(ratio-1.0) <= 0.20 )
+        //    h *=1.1;
+        //else
+        //    h /= 1.09;
+        ////else if ( ratio <= 0.5 )
+        ////    h /=1.2;
         
         //Print Statistics
         printf("%05d J=%23.15E dJ=%23.15E act/exp=%23.15E h=%23.15E\n",it,J*dsize,actDel*dsize,ratio,h);
@@ -277,9 +311,13 @@ int main()
             fclose(f);
         }
     }
-    train(lin,traindb);
+    //train(lin,traindb);
     //test(lin,testdb);
     //test(lin,traindb);
+
+    for(int i=0; i<10; i++)
+        traindb[i].print();
+
 
 
     //LinearLayer ll(1,1);

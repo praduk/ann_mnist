@@ -17,6 +17,8 @@ struct MNISTimg
     enum { DATASZ=784 };
     U8 data[28][28];
     U8 label;
+
+    void print();
 };
 
 class MNISTDB : public std::vector<MNISTimg>

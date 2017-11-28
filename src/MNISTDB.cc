@@ -19,6 +19,20 @@ U32 bswap(U32 x)
 #define bswap(x) x
 #endif
 
+void MNISTimg::print()
+{
+    for(int r=0; r<28;r++)
+    {
+        for(int c=0; c<28; c++)
+        {
+            printf("%c[48;2;%d;%d;%dm  ", 0x1B, data[r][c], data[r][c], data[r][c]);
+        }
+        printf("%c[0m\n",0x1B);
+    }
+    printf("        Label = %d\n",label);
+
+}
+
 MNISTDB::MNISTDB(char const* fn_images, char const* fn_labels)
 {
     FILE* fimg = fopen(fn_images,"rb");
