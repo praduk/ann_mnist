@@ -13,7 +13,7 @@
 
 //void checkBackprop(Layer& l)
 //{
-//    double h = 1E-9; //step size
+//    double h = 1E-6; //step size
 //    double* in = new double[l.I];
 //    double* og = new double[l.O];
 //    l.setInput(in);
@@ -42,7 +42,7 @@
 //        for( int j=0; j<l.O; j++)
 //            J += og[j]*l.o[j];
 //
-//        printf("%02d %23.15E %23.15E\n", i, (J-J0)/h, l.g[i]);
+//        printf("%02d FD=>%23.15E BP=>%23.15E\n", i, (J-J0)/h, l.g[i]);
 //
 //        in[i] = inorig;
 //    }
@@ -51,77 +51,77 @@
 //    delete [] og;
 //}
 
-//void checkBackprop(LinearLayer& l)
-//{
-//    double h = 1E-9; //step size
-//    double* in = new double[l.I];
-//    double* og = new double[l.O];
-//    l.setInput(in);
-//    l.setGrad(og);
-//    for(int i=0; i<l.I; i++)
-//        in[i] = drand(-1.0,1.0);
-//    for(int i=0; i<l.O; i++)
-//        og[i] = drand(-1.0,1.0);
-//
-//    l.clear();
-//    l.eval();
-//    l.backprop();
-//
-//    double J0 = 0.0;
-//    for( int i=0; i<l.O; i++)
-//        J0 += og[i]*l.o[i];
-//
-//    //perturb each input and evaluate gradient
-//    for(int i=0; i<l.I;i++)
-//    {
-//        double inorig = in[i];
-//        in[i] += h;
-//
-//        l.eval();
-//        double J = 0.0;
-//        for( int j=0; j<l.O; j++)
-//            J += og[j]*l.o[j];
-//
-//        printf("I %02d %23.15E %23.15E\n", i, (J-J0)/h, l.g[i]);
-//
-//        in[i] = inorig;
-//    }
-//
-//    //perturb each bias and evaluate gradient
-//    for(int i=0; i<l.O;i++)
-//    {
-//        double borig = l.b[i];
-//        l.b[i] += h;
-//
-//        l.eval();
-//        double J = 0.0;
-//        for( int j=0; j<l.O; j++)
-//            J += og[j]*l.o[j];
-//
-//        printf("B %02d %23.15E %23.15E\n", i, (J-J0)/h, l.bg[i]);
-//
-//        l.b[i] = borig;
-//    }
-//
-//    //perturb each weight and evaluate gradient
-//    for(int i=0; i<l.IO;i++)
-//    {
-//        double worig = l.w[i];
-//        l.w[i] += h;
-//
-//        l.eval();
-//        double J = 0.0;
-//        for( int j=0; j<l.O; j++)
-//            J += og[j]*l.o[j];
-//
-//        printf("W %02d %23.15E %23.15E\n", i, (J-J0)/h, l.wg[i]);
-//
-//        l.w[i] = worig;
-//    }
-//
-//    delete [] in;
-//    delete [] og;
-//}
+void checkBackprop(LinearLayer& l)
+{
+    double h = 1E-2; //step size
+    double* in = new double[l.I];
+    double* og = new double[l.O];
+    l.setInput(in);
+    l.setGrad(og);
+    for(int i=0; i<l.I; i++)
+        in[i] = drand(-1.0,1.0);
+    for(int i=0; i<l.O; i++)
+        og[i] = drand(-1.0,1.0);
+
+    l.clear();
+    l.eval();
+    l.backprop();
+
+    double J0 = 0.0;
+    for( int i=0; i<l.O; i++)
+        J0 += og[i]*l.o[i];
+
+    //perturb each input and evaluate gradient
+    for(int i=0; i<l.I;i++)
+    {
+        double inorig = in[i];
+        in[i] += h;
+
+        l.eval();
+        double J = 0.0;
+        for( int j=0; j<l.O; j++)
+            J += og[j]*l.o[j];
+
+        printf("I %02d %23.15E %23.15E\n", i, (J-J0)/h, l.g[i]);
+
+        in[i] = inorig;
+    }
+
+    //perturb each bias and evaluate gradient
+    for(int i=0; i<l.O;i++)
+    {
+        double borig = l.b[i];
+        l.b[i] += h;
+
+        l.eval();
+        double J = 0.0;
+        for( int j=0; j<l.O; j++)
+            J += og[j]*l.o[j];
+
+        printf("B %02d %23.15E %23.15E\n", i, (J-J0)/h, l.bg[i]);
+
+        l.b[i] = borig;
+    }
+
+    //perturb each weight and evaluate gradient
+    for(int i=0; i<l.IO;i++)
+    {
+        double worig = l.w[i];
+        l.w[i] += h;
+
+        l.eval();
+        double J = 0.0;
+        for( int j=0; j<l.O; j++)
+            J += og[j]*l.o[j];
+
+        printf("W %02d %23.15E %23.15E\n", i, (J-J0)/h, l.wg[i]);
+
+        l.w[i] = worig;
+    }
+
+    delete [] in;
+    delete [] og;
+}
 
 void test(Network& n, MNISTDB& db);
 void train(Network& n, MNISTDB& db)
@@ -137,7 +137,7 @@ void train(Network& n, MNISTDB& db)
 
     double h = gamma;
     int part = rand()%dsize;
-    for( int it=0; it<1000000000; it++)
+    for( int it=0; it<2000000000; it++)
     {
         //Train
         n.clear(); //Clear Gradients
@@ -292,10 +292,11 @@ int main()
     
     //LinearLayer + SoftMax Network
     Network lin(MNISTimg::DATASZ,10);
-    //lin.addLayer(new LinearLayer(MNISTimg::DATASZ,10));
+    //LinearLayer test(5,2);
+    lin.addLayer(new LinearLayer(MNISTimg::DATASZ,10));
     //lin.addLayer(new LogisticLayer(MNISTimg::DATASZ,16));
-    lin.addLayer(new SoftPlusLayer(MNISTimg::DATASZ,16));
-    lin.addLayer(new LogisticLayer(16,10));
+    //lin.addLayer(new SoftPlusLayer(MNISTimg::DATASZ,16));
+    //lin.addLayer(new LogisticLayer(16,10));
     lin.addLayer(new SoftMax(10));
 
     {
@@ -311,12 +312,14 @@ int main()
             fclose(f);
         }
     }
-    //train(lin,traindb);
+
+    //checkBackprop(*static_cast<LinearLayer*>(lin.layers[0]));
+    train(lin,traindb);
     //test(lin,testdb);
     //test(lin,traindb);
 
-    for(int i=0; i<10; i++)
-        traindb[i].print();
+    //for(int i=0; i<10; i++)
+    //    traindb[i].print();
 
 
 
